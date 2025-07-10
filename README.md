@@ -2,6 +2,8 @@
 
 Ein elegantes Tool zum Anzeigen, Filtern und Herunterladen von GeoJSON-Dateien mit einer benutzerfreundlichen Streamlit-Oberfläche.
 
+🌐 **[Live-Demo: https://yiku-geojsonfilter.streamlit.app](https://yiku-geojsonfilter.streamlit.app)**
+
 ## 🎯 Features
 
 - **📁 GeoJSON Upload**: Einfaches Hochladen von .geojson und .json Dateien
@@ -34,13 +36,18 @@ geojson-filter/
 - Rendering, User Interaction
 - Streamlit-spezifische Komponenten
 
-## 🚀 Installation & Usage
+## 🚀 Usage
 
-### Voraussetzungen
+### 🌐 Online verwenden (empfohlen)
+**Einfach öffnen:** [https://yiku-geojsonfilter.streamlit.app](https://yiku-geojsonfilter.streamlit.app)  
+Keine Installation erforderlich - direkt im Browser nutzen!
+
+### 💻 Lokale Installation
+#### Voraussetzungen
 - Python 3.8+
 - pip
 
-### Setup
+#### Setup
 ```bash
 # Repository klonen
 git clone https://github.com/yilmazkusatmer/geojson-filter.git
@@ -53,7 +60,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### Verwendung
+### 📖 Verwendung
 1. **Upload**: GeoJSON-Datei hochladen
 2. **Spalten**: Gewünschte Properties auswählen
 3. **Filter**: Regex-Pattern eingeben (z.B. "Helvetia")
