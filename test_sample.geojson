@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Point 1",
+        "company": "Helvetia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [8.5417, 47.3769]
+      }
+    },
+    {
+      "type": "Feature", 
+      "properties": {
+        "name": "Test Point 2",
+        "company": "Baloise"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.5886, 47.5596]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Point 3", 
+        "company": "Zurich"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [8.2275, 46.8182]
+      }
+    }
+  ]
+} 
