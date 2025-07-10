@@ -80,6 +80,29 @@ streamlit run app.py
 - **Comments**: Deutsche Kommentare im Code
 - **Clean Architecture**: Strikte Trennung Backend/Frontend
 
+### Testing
+Umfassende Unit Tests für das Backend:
+
+```bash
+# Alle Tests ausführen
+python -m pytest tests/ --verbose
+
+# Tests mit Coverage (nach Installation von pytest-cov)
+pip install pytest-cov
+python run_tests.py
+
+# Einzelne Tests
+python -m pytest tests/test_backend.py::TestGeoJSONProcessor::test_filter_data_with_pattern -v
+```
+
+**Test Coverage**: 23 Unit Tests decken alle Backend-Funktionen ab:
+- ✅ GeoJSON Loading & Validation
+- ✅ Property Extraction
+- ✅ Regex Filtering (mit Edge Cases)
+- ✅ JSON Export
+- ✅ Error Handling
+- ✅ Integration Workflow
+
 ### Erweiterungen
 Das modulare Design ermöglicht einfache Erweiterungen:
 - Neue Filter-Typen in `GeoJSONProcessor`

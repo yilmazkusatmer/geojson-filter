@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Helvetia Location",
+        "company": "Helvetia Insurance",
+        "city": "Basel",
+        "country": "Switzerland",
+        "employees": 100
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.588576, 47.559599]
+      }
+    },
+    {
+      "type": "Feature", 
+      "properties": {
+        "name": "Baloise Office",
+        "company": "Baloise Group",
+        "city": "Basel",
+        "country": "Switzerland",
+        "employees": 200
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.582448, 47.561040]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Test Location",
+        "company": "Test Corp",
+        "city": "Zurich",
+        "country": "Switzerland",
+        "employees": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [8.541694, 47.376887]
+      }
+    }
+  ]
+} 

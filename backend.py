@@ -51,6 +51,11 @@ class GeoJSONProcessor:
         if not pattern:
             return self.prop_df, len(self.prop_df)
         
+        # Handle non-existent columns gracefully
+        if column not in self.prop_df.columns:
+            empty_df = self.prop_df.iloc[0:0]  # Empty DataFrame with same structure
+            return empty_df, 0
+        
         mask = self.prop_df[column].astype(str).str.contains(
             pattern, flags=re.IGNORECASE, regex=True, na=False
         )
