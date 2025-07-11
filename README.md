@@ -184,21 +184,6 @@ git commit -m "Add intelligent zoom calculation based on geographic spread"
 st.info("🎯 Fokus auf 3 Features: Feature A, Feature B...")
 ```
 
-## 📈 Roadmap
-
-### 🔮 Geplante Features
-- [ ] **Export nur ausgewählter Features**
-- [ ] **Batch-Processing** für mehrere Dateien
-- [ ] **Custom Map Styles** (OpenStreetMap, Satellite, etc.)
-- [ ] **Feature-Clustering** für große Datasets
-- [ ] **Distance-Measurement** zwischen Features
-- [ ] **Draw-Tools** für manuelle Gebietsauswahl
-
-### 🚀 Performance Optimierungen
-- [ ] **Virtualisierung** für >1000 Features
-- [ ] **Progressive Loading** für große GeoJSON
-- [ ] **Caching** für wiederholte Operationen
-
 ## 👥 Beitragen
 
 1. **Fork** des Repositories
@@ -212,5 +197,5 @@ MIT License - Siehe [LICENSE](LICENSE) für Details.
 
 ---
 
-**Made with ❤️ and 🗺️ by NOVA-9**  
+**Made with ❤️ and 🗺️   
 *Refactoring the digital universe, one GeoJSON at a time* ⚡ 
