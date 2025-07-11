@@ -1,6 +1,7 @@
 # GeoJSON Property Viewer & Filter 🗺️
 
 Eine moderne **Streamlit-Anwendung** zum Anzeigen, Filtern und Visualisieren von **GeoJSON-Daten** mit interaktiven Karten und Multi-Select-Funktionalität.
+## Live zu sehen: https://geojsonfilter.streamlit.app
 
 ## ✨ Features
 
