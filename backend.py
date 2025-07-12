@@ -11,6 +11,7 @@ from typing import Dict, List, Any, Tuple, Optional
 
 import pandas as pd
 import folium
+from translation_manager import TranslationManager
 
 
 class GeoJSONProcessor:
@@ -19,16 +20,17 @@ class GeoJSONProcessor:
     def __init__(self):
         self.data: Dict[str, Any] = {}
         self.prop_df: pd.DataFrame = pd.DataFrame()
+        self.translator = TranslationManager(default_language="en")
     
     def load_geojson(self, uploaded_file) -> bool:
         """Load and validate GeoJSON data"""
         try:
             self.data = json.load(uploaded_file)
         except Exception as e:
-            raise ValueError(f"Die Datei konnte nicht gelesen werden: {e}")
+            raise ValueError(self.translator.get_text("file_read_error", error=str(e)))
         
         if "features" not in self.data or not isinstance(self.data["features"], list):
-            raise ValueError("Die Datei enthält keine gültigen GeoJSON‑Features.")
+            raise ValueError(self.translator.get_text("invalid_geojson"))
         
         return True
     
@@ -37,7 +39,7 @@ class GeoJSONProcessor:
         self.prop_df = pd.DataFrame([f.get("properties", {}) for f in self.data["features"]])
         
         if self.prop_df.empty:
-            raise ValueError("Keine Eigenschaften gefunden – nichts darzustellen.")
+            raise ValueError(self.translator.get_text("no_properties_found"))
         
         return self.prop_df
     

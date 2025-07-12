@@ -12,6 +12,7 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 from backend import GeoJSONProcessor
+from translation_manager import TranslationManager
 
 
 class StreamlitApp:
@@ -19,42 +20,38 @@ class StreamlitApp:
     
     def __init__(self):
         self.processor = GeoJSONProcessor()
+        self.translator = TranslationManager(default_language="en")
         self.setup_page()
     
     def setup_page(self):
         """Configure Streamlit page"""
-        st.set_page_config(page_title="GeoJSON Property Viewer & Filter", layout="wide")
-        st.title("GeoJSON Property Viewer & Filter")
-        st.markdown(
-            """
-            Laden Sie eine **GeoJSON**‑Datei hoch ➜ sehen Sie alle *properties* ➜ filtern Sie per **Regex**
-            und laden Sie das gefilterte GeoJSON wieder herunter.
-            """
-        )
+        st.set_page_config(page_title=self.translator.get_text("app_title"), layout="wide")
+        st.title(self.translator.get_text("app_title"))
+        st.markdown(self.translator.get_text("description"))
     
     def render_file_uploader(self):
         """Render file upload interface"""
-        return st.file_uploader("GeoJSON hochladen", type=["json", "geojson"])
+        return st.file_uploader(self.translator.get_text("file_upload"), type=["json", "geojson"])
     
     def render_column_selector(self, prop_df: pd.DataFrame) -> List[str]:
         """Render column selection interface"""
-        with st.expander("Spalten auswählen"):
+        with st.expander(self.translator.get_text("column_selector")):
             return st.multiselect(
-                "Welche Spalten sollen angezeigt werden?",
+                self.translator.get_text("column_selector_help"),
                 prop_df.columns.tolist(),
                 default=prop_df.columns.tolist(),
             )
     
     def render_filter_controls(self, prop_df: pd.DataFrame, default_index: int) -> Tuple[str, str]:
         """Render filter control interface"""
-        st.subheader("Filtern")
+        st.subheader(self.translator.get_text("filter_section"))
         
         name_col = st.selectbox(
-            "Spalte, auf die gefiltert werden soll", 
+            self.translator.get_text("filter_column"), 
             prop_df.columns, 
             index=default_index
         )
-        pattern = st.text_input("Regex‑Muster (z.B. 'Helvetia')", "")
+        pattern = st.text_input(self.translator.get_text("filter_pattern"), "")
         
         return name_col, pattern
     
@@ -63,18 +60,18 @@ class StreamlitApp:
         """Render filtered results preview and return selected feature name if clicked"""
         # Display count
         if has_pattern:
-            st.write(f"🎯 **Gefilterte Features:** {filtered_count} / {total_count}")
+            st.write(self.translator.get_text("filtered_features", filtered=filtered_count, total=total_count))
         else:
-            st.write(f"📊 **Alle Features:** {total_count}")
+            st.write(self.translator.get_text("all_features", total=total_count))
         
         # Display table
-        st.subheader("Preview der Ergebnisse")
+        st.subheader(self.translator.get_text("results_preview"))
         selected_feature = None
         
         if not filtered_df.empty:
             # Check if 'name' column exists for click functionality
             if 'name' in filtered_df.columns and 'name' in chosen_cols:
-                st.info("💡 **Tipp:** Wähle eine oder mehrere Zeilen aus der Tabelle - die Karte passt sich automatisch an!")
+                st.info(self.translator.get_text("selection_tip"))
                 
                 # Create clickable table with multi-row selection
                 event = st.dataframe(
@@ -104,12 +101,13 @@ class StreamlitApp:
                     
                     # Show selected features info
                     if len(selected_features) == 1:
-                        st.success(f"🎯 **Ausgewählt:** {selected_features[0]}")
+                        st.success(self.translator.get_text("selected_single", name=selected_features[0]))
                     else:
-                        st.success(f"🎯 **{len(selected_features)} Features ausgewählt:** {', '.join(selected_features[:3])}{'...' if len(selected_features) > 3 else ''}")
+                        names = ', '.join(selected_features[:3]) + ('...' if len(selected_features) > 3 else '')
+                        st.success(self.translator.get_text("selected_multiple", count=len(selected_features), names=names))
                     
                     # Auto-zoom to selected features  
-                    if st.button("🎯 Fokussieren", key="zoom_to_selected", type="primary"):
+                    if st.button(self.translator.get_text("focus_button"), key="zoom_to_selected", type="primary"):
                         # Set selected features for map focusing and auto-enable map
                         st.session_state.selected_row_name = selected_features
                         st.session_state.show_map = True  # Auto-enable map when zooming
@@ -127,24 +125,24 @@ class StreamlitApp:
                 # Regular table without click functionality
                 st.dataframe(filtered_df[chosen_cols], use_container_width=True)
         else:
-            st.warning("⚠️ Keine Ergebnisse für diesen Filter gefunden.")
+            st.warning(self.translator.get_text("no_results"))
         
         return selected_feature or st.session_state.get("selected_row_name")
     
     def render_map_section(self, name_col: str, pattern: str, selected_feature: str = None):
         """Render interactive map visualization"""
-        st.subheader("🗺️ Kartenansicht")
+        st.subheader(self.translator.get_text("map_section"))
         
         # Initialize map visibility in session state
         if "show_map" not in st.session_state:
             st.session_state.show_map = False
             
         # Use session state for checkbox to persist through reruns
-        show_map = st.checkbox("Karte anzeigen", value=st.session_state.show_map, key="map_visibility")
+        show_map = st.checkbox(self.translator.get_text("show_map"), value=st.session_state.show_map, key="map_visibility")
         st.session_state.show_map = show_map
         
         if show_map:
-            with st.spinner("Lade Karte..."):
+            with st.spinner(self.translator.get_text("loading_map")):
                 try:
                     # Check if specific features are selected for focus
                     if st.session_state.get("selected_row_name"):
@@ -154,14 +152,15 @@ class StreamlitApp:
                         selected_features = st.session_state.selected_row_name
                         if isinstance(selected_features, list):
                             if len(selected_features) == 1:
-                                st.info(f"🎯 **Fokus auf:** {selected_features[0]}")
+                                st.info(self.translator.get_text("map_focus", name=selected_features[0]))
                             else:
-                                st.info(f"🎯 **Fokus auf {len(selected_features)} Features:** {', '.join(selected_features[:2])}{'...' if len(selected_features) > 2 else ''}")
+                                names = ', '.join(selected_features[:2]) + ('...' if len(selected_features) > 2 else '')
+                                st.info(self.translator.get_text("map_focus_multiple", count=len(selected_features), names=names))
                         else:
-                            st.info(f"🎯 **Fokus auf:** {selected_features}")
+                            st.info(self.translator.get_text("map_focus", name=selected_features))
                         
                         # Add button to return to overview
-                        if st.button("🔄 Zurück zur Übersicht", key="back_to_overview"):
+                        if st.button(self.translator.get_text("back_to_overview"), key="back_to_overview"):
                             st.session_state.selected_row_name = None
                             st.session_state.selected_features = []
                             st.rerun()
@@ -176,34 +175,37 @@ class StreamlitApp:
                                 feat for feat in self.processor.data.get("features", [])
                                 if re.search(pattern, str(feat.get("properties", {}).get(name_col, "")), re.IGNORECASE)
                             ])
-                            st.info(f"📊 **{filtered_count} von {self.processor.get_feature_count()} Features** werden angezeigt")
+                            st.info(self.translator.get_text("features_displayed", filtered=filtered_count, total=self.processor.get_feature_count()))
                         else:
-                            st.info(f"📊 **Alle {self.processor.get_feature_count()} Features** werden angezeigt")
+                            st.info(self.translator.get_text("all_features_displayed", total=self.processor.get_feature_count()))
                     
                     st_folium(folium_map, width=700, height=500)
                 except Exception as e:
-                    st.error(f"❌ Fehler beim Erstellen der Karte: {str(e)}")
-                    st.info("💡 **Tipp:** Versuche es mit einer anderen GeoJSON-Datei.")
+                    st.error(self.translator.get_text("map_error", error=str(e)))
+                    st.info(self.translator.get_text("map_error_tip"))
     
     def render_download_section(self, filtered_json: str, feature_count: int):
         """Render download interface"""
-        st.subheader("📥 Download")
+        st.subheader(self.translator.get_text("download_section"))
         
         # Show clear info about what gets downloaded
         if st.session_state.get("selected_features"):
             selected_count = len(st.session_state.selected_features)
-            st.info(f"💡 **Hinweis:** Download enthält alle {feature_count} gefilterten Features, nicht nur die {selected_count} ausgewählten.")
+            st.info(self.translator.get_text("download_info", total=feature_count, selected=selected_count))
         
         st.download_button(
-            "🎯 Gefiltertes GeoJSON herunterladen",
+            self.translator.get_text("download_button"),
             data=filtered_json,
             file_name="filtered.geojson",
             mime="application/geo+json",
-            help=f"Lädt alle {feature_count} gefilterten Features herunter (nicht nur ausgewählte)"
+            help=self.translator.get_text("download_help", count=feature_count)
         )
     
     def run(self):
         """Main application logic"""
+        # Render language selector in sidebar
+        self.translator.render_language_selector()
+        
         uploaded_file = self.render_file_uploader()
         
         if uploaded_file is not None:
@@ -212,7 +214,7 @@ class StreamlitApp:
                 self.processor.load_geojson(uploaded_file)
                 prop_df = self.processor.extract_properties()
                 
-                st.write(f"**Anzahl Features:** {self.processor.get_feature_count()}")
+                st.write(f"**{self.translator.get_text('feature_count')}:** {self.processor.get_feature_count()}")
                 
                 # UI Controls
                 chosen_cols = self.render_column_selector(prop_df)
