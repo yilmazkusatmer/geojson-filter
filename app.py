@@ -9,7 +9,18 @@ Two-Class Architecture:
 - frontend.py: StreamlitApp class for user interface logic
 """
 
-from frontend import StreamlitApp
+import sys
+import os
+
+# Add current directory to Python path for reliable imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from frontend import StreamlitApp
+except ImportError as e:
+    import streamlit as st
+    st.error(f"Import error: {e}")
+    st.stop()
 
 
 def main():
