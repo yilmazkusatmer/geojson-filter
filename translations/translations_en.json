@@ -35,8 +35,10 @@
     "invalid_geojson": "The file does not contain valid GeoJSON features.",
     "no_properties_found": "No properties found – nothing to display.",
     "default_zoom": "Default zoom for no features",
-    "single_feature_zoom": "Very close for a single feature",
-    "few_features_zoom": "Close zoom for few features",
-    "medium_group_zoom": "Medium zoom for small group",
-    "wide_view_zoom": "Wide overview for many features"
+    "single_feature_zoom": "Intelligent zoom for single feature",
+    "few_features_zoom": "Adaptive zoom for few features",
+    "medium_group_zoom": "Smart zoom for feature groups",
+    "wide_view_zoom": "Dynamic overview for many features",
+    "large_polygon_zoom": "Optimized zoom for large polygons (states/countries)",
+    "small_polygon_zoom": "Focused zoom for small polygons (cities/regions)"
 } 

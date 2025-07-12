@@ -133,6 +133,111 @@ class GeoJSONProcessor:
                 for item in coords:
                     self._extract_coords_recursive(item, lats, lons)
     
+    def _calculate_intelligent_zoom(self, features: List[Dict[str, Any]]) -> int:
+        """Calculate intelligent zoom level based on geographic extent and feature characteristics"""
+        if not features:
+            return 10  # Default zoom for no features
+        
+        feature_count = len(features)
+        
+        # Extract all coordinates from features
+        lats, lons = [], []
+        has_large_polygons = False
+        
+        for feature in features:
+            geometry = feature.get("geometry", {})
+            geom_type = geometry.get("type", "")
+            
+            if geom_type == "Point":
+                coords = geometry.get("coordinates", [])
+                if len(coords) >= 2:
+                    lons.append(coords[0])
+                    lats.append(coords[1])
+            elif geom_type in ["Polygon", "MultiPolygon"]:
+                # Extract all polygon coordinates
+                self._extract_coords_recursive(geometry.get("coordinates", []), lats, lons)
+                
+                # Check if this is a large polygon (like a state/country)
+                if lats and lons:
+                    temp_lat_range = max(lats) - min(lats) if len(lats) > 1 else 0
+                    temp_lon_range = max(lons) - min(lons) if len(lons) > 1 else 0
+                    if temp_lat_range > 0.5 or temp_lon_range > 0.5:  # Large polygon detected
+                        has_large_polygons = True
+                
+                # Also use center point if available for better centering
+                properties = feature.get("properties", {})
+                center_data = properties.get("center", {})
+                if center_data.get("type") == "Point":
+                    center_coords = center_data.get("coordinates", [])
+                    if len(center_coords) >= 2:
+                        lons.append(center_coords[0])
+                        lats.append(center_coords[1])
+        
+        # Calculate geographic spread
+        if not lats or not lons:
+            return 10  # Default zoom if no coordinates
+        
+        lat_range = max(lats) - min(lats) if len(lats) > 1 else 0
+        lon_range = max(lons) - min(lons) if len(lons) > 1 else 0
+        max_range = max(lat_range, lon_range)
+        
+        # Intelligent zoom algorithm considering:
+        # 1. Feature count
+        # 2. Geographic spread
+        # 3. Presence of large polygons (states, countries, etc.)
+        
+        if has_large_polygons:
+            # Special handling for large polygons like states/countries
+            if feature_count == 1:
+                if max_range > 5.0:  # Very large polygon (country-sized)
+                    return 5
+                elif max_range > 2.0:  # Large polygon (state-sized)
+                    return 7
+                elif max_range > 1.0:  # Medium polygon (region-sized)
+                    return 8
+                else:  # Small polygon (city-sized)
+                    return 10
+            else:
+                # Multiple large polygons - zoom out more
+                return max(4, 7 - feature_count // 2)
+        
+        # Standard zoom logic for points and small polygons
+        if feature_count == 1:
+            if max_range < 0.001:  # Very small area
+                return 16
+            elif max_range < 0.01:  # Small area
+                return 14
+            elif max_range < 0.1:  # Medium area
+                return 12
+            else:  # Large area
+                return 10
+        elif feature_count <= 3:
+            if max_range < 0.01:  # Very close features
+                return 14
+            elif max_range < 0.1:  # Close features
+                return 12
+            elif max_range < 0.5:  # Medium spread
+                return 10
+            else:  # Large spread
+                return 8
+        elif feature_count <= 10:
+            if max_range < 0.1:  # Close features
+                return 11
+            elif max_range < 1.0:  # Medium spread
+                return 9
+            else:  # Large spread
+                return 7
+        elif feature_count <= 50:
+            if max_range < 0.5:  # Close features
+                return 9
+            elif max_range < 2.0:  # Medium spread
+                return 7
+            else:  # Large spread
+                return 5
+        else:
+            # Many features - wide overview
+            return max(4, 8 - feature_count // 20)
+    
     def create_map(self, column: str = "", pattern: str = "") -> folium.Map:
         """Create a Folium map with GeoJSON features"""
         # Determine which features to show first
@@ -148,20 +253,8 @@ class GeoJSONProcessor:
         # Calculate center based on FILTERED features, not all features
         center_lat, center_lon = self.calculate_filtered_map_bounds(features_to_show)
         
-        # Calculate intelligent zoom based on number of features
-        feature_count = len(features_to_show)
-        if feature_count == 0:
-            zoom_level = 10  # Default zoom for no features
-        elif feature_count == 1:
-            zoom_level = 15  # Very close for single feature
-        elif feature_count <= 3:
-            zoom_level = 13  # Close zoom for few features
-        elif feature_count <= 10:
-            zoom_level = 11  # Medium zoom for small group
-        elif feature_count <= 50:
-            zoom_level = 9   # Wider view for medium group
-        else:
-            zoom_level = 8   # Wide overview for many features
+        # Calculate intelligent zoom based on geographic extent AND feature count
+        zoom_level = self._calculate_intelligent_zoom(features_to_show)
         
         # Create base map with intelligent zoom level
         m = folium.Map(
@@ -200,50 +293,8 @@ class GeoJSONProcessor:
         # Calculate center coordinates for ALL selected features
         center_lat, center_lon = self.calculate_filtered_map_bounds(target_features)
         
-        # Calculate intelligent zoom based on number of selected features and their spread
-        feature_count = len(target_features)
-        
-        # Calculate bounding box for smart zoom
-        lats, lons = [], []
-        for feature in target_features:
-            geometry = feature.get("geometry", {})
-            if geometry.get("type") == "Point":
-                coords = geometry.get("coordinates", [])
-                if len(coords) >= 2:
-                    lons.append(coords[0])
-                    lats.append(coords[1])
-            elif geometry.get("type") in ["Polygon", "MultiPolygon"]:
-                self._extract_coords_recursive(geometry.get("coordinates", []), lats, lons)
-                # Also use center point if available
-                properties = feature.get("properties", {})
-                center_data = properties.get("center", {})
-                if center_data.get("type") == "Point":
-                    center_coords = center_data.get("coordinates", [])
-                    if len(center_coords) >= 2:
-                        lons.append(center_coords[0])
-                        lats.append(center_coords[1])
-        
-        # Calculate geographic spread for intelligent zoom
-        if lats and lons:
-            lat_range = max(lats) - min(lats)
-            lon_range = max(lons) - min(lons)
-            max_range = max(lat_range, lon_range)
-            
-            # Intelligent zoom based on feature count AND geographic spread
-            if feature_count == 1:
-                zoom_level = 16  # Very close for single feature
-            elif feature_count <= 3 and max_range < 0.01:  # Very close features
-                zoom_level = 14
-            elif feature_count <= 5 and max_range < 0.1:   # Close features
-                zoom_level = 12
-            elif max_range < 0.5:  # Medium spread
-                zoom_level = 10
-            elif max_range < 2.0:  # Large spread
-                zoom_level = 8
-            else:  # Very large spread
-                zoom_level = 6
-        else:
-            zoom_level = 10  # Default zoom
+        # Calculate intelligent zoom based on geographic extent AND feature count
+        zoom_level = self._calculate_intelligent_zoom(target_features)
         
         # Create map with intelligent zoom
         m = folium.Map(
