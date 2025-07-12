@@ -51,7 +51,12 @@ class StreamlitApp:
             prop_df.columns, 
             index=default_index
         )
-        pattern = st.text_input(self.translator.get_text("filter_pattern"), "")
+        
+        # Get dynamic example from actual data
+        example_value = self._get_example_value(prop_df, name_col)
+        pattern_placeholder = self.translator.get_text("filter_pattern", example=example_value)
+        
+        pattern = st.text_input(pattern_placeholder, "")
         
         return name_col, pattern
     
@@ -128,6 +133,24 @@ class StreamlitApp:
             st.warning(self.translator.get_text("no_results"))
         
         return selected_feature or st.session_state.get("selected_row_name")
+    
+    def _get_example_value(self, prop_df: pd.DataFrame, column: str) -> str:
+        """Get a dynamic example value from the actual data for the selected column"""
+        if column not in prop_df.columns or prop_df.empty:
+            return "example"
+        
+        # Get the first non-null, non-empty value from the column
+        column_data = prop_df[column].dropna()
+        if not column_data.empty:
+            # Get first value and convert to string
+            first_value = str(column_data.iloc[0])
+            if first_value and first_value.strip():
+                # If it's a long value, truncate it
+                if len(first_value) > 20:
+                    return first_value[:17] + "..."
+                return first_value
+        
+        return "example"
     
     def render_map_section(self, name_col: str, pattern: str, selected_feature: str = None):
         """Render interactive map visualization"""

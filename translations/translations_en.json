@@ -7,7 +7,7 @@
     "column_selector_help": "Which columns should be displayed?",
     "filter_section": "Filter",
     "filter_column": "Column to filter on",
-    "filter_pattern": "Regex pattern (e.g., 'Helvetia')",
+    "filter_pattern": "Regex pattern (e.g., '{example}')",
     "feature_count": "Number of Features",
     "filtered_features": "🎯 **Filtered Features:** {filtered} / {total}",
     "all_features": "📊 **All Features:** {total}",
